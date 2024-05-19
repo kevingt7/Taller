@@ -1,0 +1,68 @@
+﻿@page "/servicios"
+@using Taller.Repositorios
+@using Taller.Datos
+@inject IRepositorioServicio _repositorio;
+@inject NavigationManager _navigator;
+
+<h3>Servicios</h3>
+<a class="btn btn-success" href="/servicios/nuevo">Agregar Servicio</a>
+@if (_servicios == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_servicios.Count == 0)
+{
+    <h3>No existen servicios registrados</h3>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre del Servicio</th>
+                <th>Descripción</th>
+                <th>Duración Estimada</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var servicio in _servicios)
+            {
+                <tr>
+                    <td>@servicio.NombreServicio</td>
+                    <td>@servicio.Descripcion</td>
+                    <td>@servicio.DuracionEstimada</td>
+                    <td>@servicio.Precio</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => Modificar(servicio.ServicioID)">Modificar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(servicio)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Servicio>? _servicios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _servicios = await _repositorio.GetAll();
+    }
+
+    private async Task Eliminar(Servicio servicio)
+    {
+        await _repositorio.DeleteServicio(servicio.ServicioID);
+        _servicios!.Remove(servicio);
+        StateHasChanged();
+    }
+
+    private void Modificar(int ServicioID)
+    {
+        _navigator.NavigateTo($"/servicios/editar/{ServicioID}");
+    }
+}

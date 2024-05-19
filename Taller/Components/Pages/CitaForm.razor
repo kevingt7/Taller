@@ -1,0 +1,99 @@
+﻿@page "/citas/nuevo"
+@page "/citas/editar/{CitaID:int}"
+@using Taller.Repositorios
+@using Taller.Datos
+@inject NavigationManager _navigator
+@inject IRepositorioCita _repositorio
+@inject IRepositorioCliente _repositorioCliente
+@inject IRepositorioServicio _repositorioServicio
+<h2>@_mensaje Citas</h2>
+
+<EditForm Model="_cita" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="row mb-3">
+        <label for="ddlCliente" class="col-2 col-form-label">Cliente</label>
+        <div class="col-10">
+            <InputSelect id="ddlCliente" class="form-control" @bind-Value="_cita.ClienteID">
+                <option value="">Seleccione un cliente</option>
+                @foreach (var cliente in _clientes)
+                {
+                    <option value="@cliente.ClienteID">@cliente.Nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => _cita.ClienteID)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="ddlServicio" class="col-2 col-form-label">Servicio</label>
+        <div class="col-10">
+            <InputSelect id="ddlServicio" class="form-control" @bind-Value="_cita.ServicioID">
+                <option value="">Seleccione un servicio</option>
+                @foreach (var servicio in _servicios)
+                {
+                    <option value="@servicio.ServicioID">@servicio.NombreServicio</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => _cita.ServicioID)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="dtFechaCita" class="col-2 col-form-label">Fecha de la Cita</label>
+        <div class="col-10">
+            <InputDate id="dtFechaCita" class="form-control" @bind-Value="_cita.FechaCita" />
+            <ValidationMessage For="@(() => _cita.FechaCita)" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="tmHoraCita" class="col-2 col-form-label">Hora de la Cita</label>
+        <div class="col-10">
+            <InputTime id="tmHoraCita" class="form-control" @bind-Value="_cita.HoraCita" />
+            <ValidationMessage For="@(() => _cita.HoraCita)" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int CitaID { get; set; }
+
+    private string _mensaje = "";
+    private Cita _cita = new();
+    private List<Cliente> _clientes = new();
+    private List<Servicio> _servicios = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clientes = await _repositorioCliente.GetAll();
+        _servicios = await _repositorioServicio.GetAll();
+
+        if (CitaID > 0)
+        {
+            _cita = await _repositorio.GetCita(CitaID);
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (CitaID > 0)
+        {
+            await _repositorio.UpdateCita(CitaID, _cita);
+        }
+        else
+        {
+            await _repositorio.Add(_cita);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/citas");
+    }
+}

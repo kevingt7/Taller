@@ -1,0 +1,79 @@
+﻿@page "/servicios/nuevo"
+@page "/servicios/editar/{ServicioID:int}"
+@using Taller.Repositorios
+@using Taller.Datos
+@inject NavigationManager _navigator;
+@inject IRepositorioServicio _repositorio;
+
+<h2>@_mensaje Servicios</h2>
+<EditForm Model="_servicio" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row mb-3">
+        <label for="txtNombreServicio" class="col-2 col-form-label">Nombre del Servicio</label>
+        <div class="col-10">
+            <InputText id="txtNombreServicio" class="form-control" @bind-Value="_servicio.NombreServicio" />
+            <ValidationMessage For="()=>_servicio.NombreServicio" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtDescripcion" class="col-2 col-form-label">Descripción</label>
+        <div class="col-10">
+            <InputText id="txtDescripcion" class="form-control" @bind-Value="_servicio.Descripcion" />
+            <ValidationMessage For="()=>_servicio.Descripcion" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtDuracionEstimada" class="col-2 col-form-label">Duración Estimada (minutos)</label>
+        <div class="col-10">
+            <InputNumber id="txtDuracionEstimada" class="form-control" @bind-Value="_servicio.DuracionEstimada" />
+            <ValidationMessage For="()=>_servicio.DuracionEstimada" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtPrecio" class="col-2 col-form-label">Precio</label>
+        <div class="col-10">
+            <InputNumber id="txtPrecio" class="form-control" @bind-Value="_servicio.Precio" />
+            <ValidationMessage For="()=>_servicio.Precio" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="button" class="btn btn-danger ms-3" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int ServicioID { get; set; }
+    private string _mensaje = "Servicio";
+    private Servicio _servicio = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ServicioID > 0)
+        {
+            var servicioExistente = await _repositorio.GetServicio(ServicioID);
+            if (servicioExistente != null)
+            {
+                _servicio = servicioExistente;
+            }
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (ServicioID > 0)
+        {
+            await _repositorio.UpdateServicio(ServicioID, _servicio);
+        }
+        else
+        {
+            await _repositorio.Add(_servicio);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/servicios");
+    }
+}

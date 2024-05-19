@@ -1,0 +1,68 @@
+﻿@page "/citas"
+@using Taller.Repositorios
+@using Taller.Datos
+@inject IRepositorioCita _repositorio;
+@inject NavigationManager _navigator;
+
+<h3>Citas</h3>
+<a class="btn btn-success" href="/citas/nuevo">Agregar Cita</a>
+@if (_citas == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_citas.Count == 0)
+{
+    <h3>No existen citas registradas</h3>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cita in _citas)
+            {
+                <tr>
+                    <td>@cita.Cliente.Nombre</td>
+                    <td>@cita.Servicio.NombreServicio</td>
+                    <td>@cita.FechaCita.ToShortDateString()</td>
+                    <td>@cita.HoraCita.ToString(@"hh\:mm")</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => Modificar(cita.CitaID)">Modificar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(cita)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Cita>? _citas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _citas = await _repositorio.GetAll();
+    }
+
+    private async Task Eliminar(Cita cita)
+    {
+        await _repositorio.DeleteCita(cita.CitaID);
+        _citas!.Remove(cita);
+        StateHasChanged();
+    }
+
+    private void Modificar(int CitaID)
+    {
+        _navigator.NavigateTo($"/citas/editar/{CitaID}");
+    }
+}
